@@ -149,6 +149,12 @@ def load_prompt(name):
 
 def build_system_prompt():
     return "\n\n".join([
+        f"""LANGUAGE (HIGHEST PRIORITY — this overrides every instruction below):
+- The digest is BILINGUAL: every English paragraph MUST be immediately followed by its Chinese translation of that same paragraph.
+- Per-item workflow: (1) write the English summary exactly as the item prompts describe, (2) immediately below it, separated by a blank line, write the Chinese translation of that summary, (3) repeat the tweet URL under the Chinese paragraph, then move to the next item.
+- NEVER output an English-only digest. NEVER collect all Chinese translations at the end. Interleave EN→CN paragraph by paragraph, item by item.
+- Inside Chinese text keep terms like AI/LLM/GPU/RAG/agent/benchmark/token/context window in English, keep proper nouns and all URLs unchanged, and never use an em dash (the em dash appears ONLY in the header line).
+- This applies to BOTH the X/TWITTER section and the PODCASTS section. The podcast's Chinese translation follows the same per-item rule: after the English podcast piece, provide the Chinese translation of it.""",
         load_prompt("digest-intro.md"),
         load_prompt("summarize-tweets.md"),
         load_prompt("summarize-podcast.md"),
@@ -156,7 +162,7 @@ def build_system_prompt():
         f"""OUTPUT FORMAT (strict):
 - First line exactly: # AI Builders Digest — {DIGEST_DATE}  (the em dash appears ONLY in this header line; never use an em dash anywhere in the body)
 - Then sections in order: "## X / TWITTER", "## OFFICIAL BLOGS" (only if blogs exist), "## PODCASTS" (only if podcasts exist). Omit empty sections entirely.
-- Bilingual, interleaved: every English paragraph is immediately followed by its Chinese translation, then the next item. Keep terms like AI/LLM/GPU/RAG/agent/benchmark/token/context window in English inside Chinese text.
+- Bilingual (see LANGUAGE rule at the top — it is mandatory): every English paragraph is immediately followed by its Chinese translation, then the next item.
 - NEVER invent content. Every item MUST carry its URL from the material. No URL = do not include the item.
 - Authors: full name + role derived from the bio field. Never write @handles in the text.
 - Threads of multiple tweets = one summarized piece with one URL.
@@ -231,7 +237,7 @@ if __name__ == "__main__":
         digest = call_deepseek(
             os.environ["DEEPSEEK_API_KEY"],
             build_system_prompt(),
-            f"Digest date: {DIGEST_DATE}\n\nMATERIAL JSON:\n{material}",
+            f"Language mode: bilingual (EN paragraph immediately followed by its CN translation, per item).\n\nDigest date: {DIGEST_DATE}\n\nMATERIAL JSON:\n{material}",
         ).strip()
         if not digest.startswith("# AI Builders Digest"):
             digest = f"# AI Builders Digest — {DIGEST_DATE}\n\n{digest}"
