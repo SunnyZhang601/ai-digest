@@ -1,0 +1,46 @@
+name: daily-digest
+
+on:
+  schedule:
+    # 07:10 UTC = 15:10 北京时间。上游 feed 每天 ~06:43 UTC 提交，留 27 分钟余量。
+    # 注意：GitHub 免费层的定时任务可能延迟 15-60 分钟。
+    - cron: '10 7 * * *'
+  workflow_dispatch: {} # 允许手动触发（测试用）
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch upstream feeds
+        run: |
+          mkdir -p feeds
+          curl -sfL --retry 3 -o feeds/feed-x.json       https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-x.json
+          curl -sfL --retry 3 -o feeds/feed-podcasts.json https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-podcasts.json
+          curl -sfL --retry 3 -o feeds/feed-blogs.json    https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-blogs.json
+          for f in feeds/*.json; do
+            head -c 1 "$f" | grep -q '{' || { echo "BAD FEED: $f"; exit 1; }
+          done
+
+      - name: Build digest and send to Feishu
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+        run: python scripts/build_digest.py
+
+      - name: Commit digest and state
+        run: |
+          git config user.name  "digest-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "digest $(date -u +%F)"
+          git push
