@@ -48,9 +48,12 @@ def save_state(st):
         json.dump(st, f, ensure_ascii=False, indent=1)
 
 
-def http_post(url, payload, timeout=300):
+def http_post(url, payload, timeout=300, headers=None):
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    h = {"Content-Type": "application/json"}
+    if headers:
+        h.update(headers)
+    req = urllib.request.Request(url, data=data, headers=h)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode("utf-8"))
 
@@ -130,6 +133,7 @@ def call_deepseek(api_key, system_prompt, user_content):
                 "https://api.deepseek.com/chat/completions",
                 {**payload, **({"stream": False})},
                 timeout=420,
+                headers={"Authorization": f"Bearer {api_key}"},
             )
             return resp["choices"][0]["message"]["content"]
         except (urllib.error.URLError, KeyError, OSError) as e:
