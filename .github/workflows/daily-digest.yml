@@ -44,3 +44,20 @@ jobs:
           git add -A
           git diff --cached --quiet || git commit -m "digest $(date -u +%F)"
           git push
+
+      - name: Publish to Horizon site
+        env:
+          HORIZON_TOKEN: ${{ secrets.HORIZON_TOKEN }}
+        run: |
+          DATE=$(date -u -d "yesterday" +%F)
+          SRC="digests/$DATE.md"
+          if [ ! -f "$SRC" ]; then echo "no digest for $DATE, skip publish"; exit 0; fi
+          { printf -- '---\nlayout: default\ntitle: "AI Builders Digest %s"\ndate: %s\n---\n\n' "$DATE" "$DATE"; cat "$SRC"; } > publish.md
+          B64=$(base64 -w0 publish.md)
+          API="https://api.github.com/repos/SunnyZhang601/Horizon/contents/docs/ai-builders/$DATE.md"
+          SHA=$(curl -sf -H "Authorization: Bearer $HORIZON_TOKEN" -H "Accept: application/vnd.github+json" "$API" \
+            | python3 -c "import sys,json;print(json.load(sys.stdin)['sha'])" || true)
+          jq -n --arg msg "AI Builders Digest $DATE" --arg b64 "$B64" --arg sha "$SHA" \
+            '{message:$msg, content:$b64, branch:"main"} + (if $sha == "" then {} else {sha:$sha} end)' > payload.json
+          curl -sf -X PUT -H "Authorization: Bearer $HORIZON_TOKEN" -H "Accept: application/vnd.github+json" \
+            -d @payload.json "$API" > /dev/null && echo "published: docs/ai-builders/$DATE.md"
