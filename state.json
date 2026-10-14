@@ -1,8 +1,11 @@
 {
  "podcasts": [
   "44fa0b1c-be0b-11f1-b00d-cb6a27141e9e",
-  "flightcast:01M3SP9F8QKB4V4J9RPKX41XFM"
+  "flightcast:01M3SP9F8QKB4V4J9RPKX41XFM",
+  "d7ae4536-c437-11f1-9011-633961538ee5"
  ],
- "blogs": [],
- "last_digest": "2026-10-12"
+ "blogs": [
+  "https://www.anthropic.com/engineering/redesigning-source-control"
+ ],
+ "last_digest": "2026-10-13"
 }
