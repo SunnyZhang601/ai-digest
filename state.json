@@ -25,12 +25,13 @@
   "01a1bcf7-771f-7da1-affb-a7ead0a1434c",
   "01a1c0f3-0e12-72e9-b44b-8ca8a4fe611d",
   "01a1c6f7-44d3-7eaf-95ea-cb9de51baff2",
-  "flightcast:01M717KBM0K828PAMMP3ZPWV8P"
+  "flightcast:01M717KBM0K828PAMMP3ZPWV8P",
+  "c9a0c39e-de2a-11f1-9237-d39059052d4c"
  ],
  "blogs": [
   "https://www.anthropic.com/engineering/redesigning-source-control",
   "https://www.anthropic.com/engineering/how-we-contain-claude",
   "https://www.anthropic.com/engineering/april-23-postmortem"
  ],
- "last_digest": "2026-11-11"
+ "last_digest": "2026-11-12"
 }
